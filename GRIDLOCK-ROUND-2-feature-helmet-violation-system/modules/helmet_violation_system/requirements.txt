@@ -1,0 +1,6 @@
+ultralytics
+easyocr
+opencv-python
+pandas
+torch
+torchvision
