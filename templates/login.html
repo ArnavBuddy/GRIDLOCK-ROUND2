@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TrafficIQ Restricted Access</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body class="auth-page theme-dark">
+    <main class="auth-shell">
+        <section class="auth-card">
+            <div class="auth-brand">
+                <div class="logo-box">TIQ</div>
+                <div>
+                    <p>TRAFFICIQ COMMAND CENTER</p>
+                    <h1>Restricted Access</h1>
+                </div>
+            </div>
+
+            <form class="auth-form" action="/dashboard" method="get">
+                <label for="badge">BADGE NUMBER</label>
+                <input id="badge" name="badge" value="BTP0001" autocomplete="username">
+
+                <label for="password">PASSWORD</label>
+                <input id="password" name="password" type="password" value="admin" autocomplete="current-password">
+
+                <button type="submit">Authenticate</button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

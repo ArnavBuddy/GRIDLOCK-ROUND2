@@ -647,7 +647,7 @@ def build_vehicle_ahead_flags(vehicle_snapshots):
         lane = get_lane_config(snap["lane_idx"])
         if lane is None:
             continue
-        expected = get_camera_forward_lane_direction(lane["polygon"])
+        expected = get_expected_lane_direction(lane["polygon"], lane["direction"])
         cx, cy = snap["point"]
         projection = (cx * expected[0]) + (cy * expected[1])
         by_lane[snap["lane_idx"]].append((projection, snap["track_id"]))
@@ -763,7 +763,7 @@ def check_wrong_way(
     last = state["positions"][-1]
     dx = last[0] - first[0]
     dy = last[1] - first[1]
-    expected = get_camera_forward_lane_direction(lane["polygon"])
+    expected = get_expected_lane_direction(lane["polygon"], lane["direction"])
     movement_along_expected = (dx * expected[0]) + (dy * expected[1])
     confidence = min(1.0, abs(movement_along_expected) / max(WRONG_WAY_MIN_ACCUMULATED_PX * 2.0, 1.0))
 
@@ -1547,7 +1547,7 @@ def main():
                 polygon_lane_idx = snapshot["polygon_lane_idx"]
                         
                 # Determine stable lane assignment via Counter majority vote
-                stable_lane = check_lane_stability(track_id, polygon_lane_idx, lane_history)
+                stable_lane = check_lane_stability(track_id, lane_idx, lane_history)
                 
                 # Perform wrong-side driving detection
                 wrong_way_result = check_wrong_way(
@@ -1557,7 +1557,7 @@ def main():
                     speed_kmh=speed_kmh,
                     frame_count=frame_count,
                     wrong_way_states=wrong_way_states,
-                    current_lane=polygon_lane_idx,
+                    current_lane=lane_idx,
                     has_vehicle_ahead=vehicle_ahead_flags.get(track_id, False)
                 )
                 is_wrong_way = wrong_way_result["confirmed"]

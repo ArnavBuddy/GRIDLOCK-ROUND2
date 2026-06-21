@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TrafficIQ Command Center</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body class="theme-dark">
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand-row">
+                <div class="logo-box">TIQ</div>
+                <div>
+                    <h2>TrafficIQ</h2>
+                    <p>Command Center</p>
+                </div>
+            </div>
+
+            <nav class="side-nav" aria-label="Dashboard sections">
+                <a href="#dashboard" class="active">Dashboard</a>
+                <a href="#camera">Live Cameras</a>
+                <a href="#evidence">Evidence Vault</a>
+                <a href="#analytics">Analytics</a>
+                <a href="#settings">Settings</a>
+                <a href="#status">System Status</a>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main" id="dashboard">
+            <header class="hero">
+                <div>
+                    <p class="eyebrow">AI TRAFFIC GUARDIAN</p>
+                    <h1 id="greeting">Good Afternoon, Saurabh</h1>
+                    <p class="subhead">Live command overview for enforcement, evidence, and traffic intelligence.</p>
+                </div>
+                <div class="header-actions">
+                    <button class="theme-toggle" id="themeToggle" type="button">Light Theme</button>
+                    <span class="preview-pill">Preview Mode</span>
+                </div>
+            </header>
+
+            <section class="control-panel panel">
+                <div class="source-tabs">
+                    <button type="button" disabled>Live Feed</button>
+                    <button type="button" class="active">Upload Traffic Video</button>
+                    <button type="button" disabled>Connect to Live Camera</button>
+                </div>
+
+                <label class="field-label" for="trafficVideo">UPLOAD TRAFFIC VIDEO</label>
+                <input class="file-input" id="trafficVideo" type="file" accept=".mp4,.avi,.mov,.mkv,video/*">
+                <p class="hint">Allowed traffic video types: MP4, AVI, MOV, MKV</p>
+
+                <div class="engine-actions">
+                    <button class="primary-btn" id="startEngine" type="button">Start Engine</button>
+                    <button class="danger-btn" id="stopEngine" type="button">Stop Engine</button>
+                    <button class="ghost-btn" id="refreshDashboard" type="button">Refresh</button>
+                </div>
+                <p class="engine-status" id="engineStatus">AI engine offline. Upload a video to begin.</p>
+            </section>
+
+            <section class="metric-grid" aria-label="Traffic metrics">
+                <article class="metric-card"><span>VEHICLES</span><strong id="metricVehicles">0</strong><i></i></article>
+                <article class="metric-card"><span>VIOLATIONS TODAY</span><strong id="metricViolations">0</strong><i></i></article>
+                <article class="metric-card"><span>WRONG WAY</span><strong id="metricWrongWay">0</strong><i></i></article>
+                <article class="metric-card"><span>HELMET</span><strong id="metricHelmet">0</strong><i></i></article>
+                <article class="metric-card"><span>SEATBELT</span><strong id="metricSeatbelt">0</strong><i></i></article>
+                <article class="metric-card"><span>PARKING</span><strong id="metricParking">0</strong><i></i></article>
+                <article class="metric-card"><span>TRAFFIC DENSITY</span><strong id="metricDensity">0.00</strong><i></i></article>
+                <article class="metric-card"><span>FPS</span><strong id="metricFps">0</strong><i></i></article>
+            </section>
+
+            <section class="workspace-grid" id="camera">
+                <article class="panel camera-panel">
+                    <div class="panel-header">
+                        <h2>Annotated AI Camera</h2>
+                        <span id="videoState">Video Preview</span>
+                    </div>
+                    <div class="video-frame">
+                        <img id="liveStream" alt="Realtime annotated detection stream">
+                        <video id="annotatedVideo" controls muted playsinline></video>
+                        <div class="empty-state" id="videoEmpty">Upload a traffic video and start the engine.</div>
+                    </div>
+                </article>
+
+                <article class="panel fsd-panel">
+                    <div class="panel-header">
+                        <h2>3D FSD Map</h2>
+                        <span id="fsdState">AI engine offline</span>
+                    </div>
+                    <div class="fsd-canvas">
+                        <img id="fsdStream" alt="Realtime 3D FSD map stream">
+                        <div class="road road-left"></div>
+                        <div class="road road-right"></div>
+                        <p id="fsdMessage">WAITING FOR FSD VISUALIZATION</p>
+                    </div>
+                </article>
+            </section>
+
+            <section class="lower-grid">
+                <article class="panel feed-panel">
+                    <div class="panel-header">
+                        <h2>Live Violation Feed</h2>
+                        <span>Newest first</span>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>TIME</th>
+                                    <th>VEHICLE</th>
+                                    <th>TRACKER</th>
+                                    <th>VIOLATION</th>
+                                    <th>PLATE</th>
+                                    <th>CONFIDENCE</th>
+                                </tr>
+                            </thead>
+                            <tbody id="violationRows">
+                                <tr><td colspan="6">No violations logged yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+
+                <article class="panel analytics-panel" id="analytics">
+                    <div class="panel-header">
+                        <h2>Analytics</h2>
+                        <span>Operational summary</span>
+                    </div>
+                    <div class="analytics-grid">
+                        <div class="mini-chart"><h3>VIOLATION DISTRIBUTION</h3><p>None <span><b></b></span> 0</p></div>
+                        <div class="mini-chart"><h3>VEHICLE DISTRIBUTION</h3><p>None <span><b></b></span> 0</p></div>
+                        <div class="mini-chart"><h3>HOURLY VIOLATIONS</h3><p>None <span><b></b></span> 0</p></div>
+                        <div class="mini-chart"><h3>TRAFFIC DENSITY</h3>
+                            <p>T1 <span><b></b></span> 0</p>
+                            <p>T2 <span><b></b></span> 0</p>
+                            <p>T3 <span><b></b></span> 0</p>
+                            <p>T4 <span><b></b></span> 0</p>
+                            <p>T5 <span><b></b></span> 0</p>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="panel evidence-panel" id="evidence">
+                <div class="panel-header">
+                    <h2>Evidence Vault</h2>
+                    <span id="evidenceCount">0 items</span>
+                </div>
+                <div class="evidence-filters">
+                    <input id="evidenceSearch" type="search" placeholder="Search plate, tracker, violation">
+                    <select><option>All vehicles</option><option>Cars</option><option>Motorcycles</option><option>Trucks</option></select>
+                    <select><option>All violations</option><option>Wrong way</option><option>Helmet</option><option>Seatbelt</option></select>
+                    <input type="text" placeholder="dd/mm/yyyy">
+                </div>
+                <div class="evidence-list" id="evidenceList">No evidence matches the current filters.</div>
+            </section>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
