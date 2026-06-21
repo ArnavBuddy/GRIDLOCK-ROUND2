@@ -316,20 +316,21 @@ class FSD3DVisualizer:
         # Horizon Line
         cv2.line(img, (0, self.horizon_y), (self.width, self.horizon_y), (35, 35, 35), 1)
         
-        # Road Surface Polygon
-        nl = self.project(-90, 60, 0)
-        nr = self.project(90, 60, 0)
-        fl = self.project(-90, 700, 0)
-        fr = self.project(90, 700, 0)
+        # Road Surface Polygon — Y_3D range [150, 520] matches project_to_fsd_coords output
+        # Y=150 → py≈549 (near/bottom), Y=520 → py≈169 (far/top of visible road)
+        nl = self.project(-90, 150, 0)
+        nr = self.project(90, 150, 0)
+        fl = self.project(-90, 520, 0)
+        fr = self.project(90, 520, 0)
         
         road_poly = np.array([nl, fl, fr, nr], dtype=np.int32)
         cv2.fillPoly(img, [road_poly], (24, 24, 26))
         
-        # Distance Grid Lines
-        for y_grid in range(80, 700, 45):
+        # Distance Grid Lines — spaced across the visible Y_3D range
+        for y_grid in range(160, 520, 30):
             gl = self.project(-120, y_grid, 0)
             gr = self.project(120, y_grid, 0)
-            alpha = max(0.0, 1.0 - (y_grid / 600.0))
+            alpha = max(0.0, (y_grid - 150.0) / 370.0)
             color_val = int(45 * alpha)
             cv2.line(img, gl, gr, (color_val, color_val, color_val), 1)
             
@@ -338,7 +339,7 @@ class FSD3DVisualizer:
         cv2.line(img, nr, fr, (70, 70, 70), 2, cv2.LINE_AA)
         
         # Dashed lane separators (X = -30, X = 30)
-        for y_dash in range(60, 700, 20):
+        for y_dash in range(155, 520, 20):
             if (y_dash // 20) % 2 == 0:
                 p1_s = self.project(-30, y_dash, 0)
                 p1_e = self.project(-30, y_dash + 10, 0)
@@ -349,25 +350,26 @@ class FSD3DVisualizer:
                 cv2.line(img, p2_s, p2_e, (120, 120, 120), 1, cv2.LINE_AA)
                 
 
-
-        # Crosswalk Zebra Crossing (Y = 90 to 110)
+        # Crosswalk Zebra Crossing near the ego vehicle (Y = 165 to 185)
         for x_strip in range(-80, 90, 20):
-            s_nl = self.project(x_strip - 5, 90, 0)
-            s_nr = self.project(x_strip + 5, 90, 0)
-            s_fl = self.project(x_strip - 5, 110, 0)
-            s_fr = self.project(x_strip + 5, 110, 0)
+            s_nl = self.project(x_strip - 5, 165, 0)
+            s_nr = self.project(x_strip + 5, 165, 0)
+            s_fl = self.project(x_strip - 5, 185, 0)
+            s_fr = self.project(x_strip + 5, 185, 0)
             s_poly = np.array([s_nl, s_fl, s_fr, s_nr], dtype=np.int32)
             cv2.fillPoly(img, [s_poly], (180, 180, 180))
             
         # Lane Labels (L1, L2, L3)
-        l1 = self.project(-60, 70, 0)
-        l2 = self.project(0, 70, 0)
-        l3 = self.project(60, 70, 0)
+        l1 = self.project(-60, 160, 0)
+        l2 = self.project(0, 160, 0)
+        l3 = self.project(60, 160, 0)
         cv2.putText(img, "L1", (l1[0] - 8, l1[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (90, 90, 90), 1, cv2.LINE_AA)
         cv2.putText(img, "L2", (l2[0] - 8, l2[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (90, 90, 90), 1, cv2.LINE_AA)
         cv2.putText(img, "L3", (l3[0] - 8, l3[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (90, 90, 90), 1, cv2.LINE_AA)
         
     def draw_vehicle_3d(self, img, x_3d, y_3d, class_name, track_id, color):
+        h_img, w_img = img.shape[:2]
+        
         # 3D Dimensions per vehicle category
         if class_name in ["truck", "bus"]:
             w, l, h = 26, 52, 26
@@ -377,6 +379,9 @@ class FSD3DVisualizer:
             w, l, h = 6, 6, 16
         else:
             w, l, h = 20, 36, 16
+            
+        # Clamp y_3d so vehicle is in visible range
+        y_3d = max(80, min(680, y_3d))
             
         # Vertices in 3D
         c3d = [
@@ -390,12 +395,18 @@ class FSD3DVisualizer:
             (x_3d - w/2, y_3d + l/2, h),  # FLT
         ]
         
-        pts = [self.project(cx, cy, cz) for cx, cy, cz in c3d]
+        def clamp_pt(pt):
+            return (max(-2000, min(w_img + 2000, pt[0])), max(-2000, min(h_img + 2000, pt[1])))
         
-        # Cull faces behind horizon
-        for pt in pts:
-            if pt[1] < self.horizon_y:
-                return
+        pts = [clamp_pt(self.project(cx, cy, cz)) for cx, cy, cz in c3d]
+        
+        # Only cull if the entire front-face bottom row is above the horizon
+        front_bottom_pts = [pts[2], pts[3]]  # FRB, FLB
+        if all(pt[1] < self.horizon_y for pt in front_bottom_pts):
+            return
+        # Also skip if the whole box is so far below screen it's invisible
+        if all(pt[1] > h_img + 100 for pt in pts):
+            return
                 
         # Draw translucent glass faces
         overlay = img.copy()
@@ -413,34 +424,42 @@ class FSD3DVisualizer:
         border_color = color
         
         for face in faces:
-            cv2.fillPoly(overlay, [np.array(face, dtype=np.int32)], fill_color)
+            try:
+                cv2.fillPoly(overlay, [np.array(face, dtype=np.int32)], fill_color)
+            except Exception:
+                pass
             
         cv2.addWeighted(overlay, 0.20, img, 0.80, 0, img)
         
         # Draw wireframe edges
-        # Bottom Face Outline
-        for i in range(4):
-            cv2.line(img, pts[i], pts[(i + 1) % 4], border_color, 1, cv2.LINE_AA)
-        # Top Face Outline
-        for i in range(4):
-            cv2.line(img, pts[i + 4], pts[((i + 1) % 4) + 4], border_color, 1, cv2.LINE_AA)
-        # Vertical Pillars
-        for i in range(4):
-            cv2.line(img, pts[i], pts[i + 4], border_color, 1, cv2.LINE_AA)
+        try:
+            # Bottom Face Outline
+            for i in range(4):
+                cv2.line(img, pts[i], pts[(i + 1) % 4], border_color, 1, cv2.LINE_AA)
+            # Top Face Outline
+            for i in range(4):
+                cv2.line(img, pts[i + 4], pts[((i + 1) % 4) + 4], border_color, 1, cv2.LINE_AA)
+            # Vertical Pillars
+            for i in range(4):
+                cv2.line(img, pts[i], pts[i + 4], border_color, 1, cv2.LINE_AA)
+        except Exception:
+            pass
             
         # Draw 3D track ID floating badge
         top_cx = int(sum(pt[0] for pt in pts[4:8]) / 4)
         top_cy = int(sum(pt[1] for pt in pts[4:8]) / 4)
         
-        label = f"ID:{track_id}"
-        (tw, th), baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.35, 1)
-        
-        rx1, ry1 = top_cx - tw // 2 - 4, top_cy - th // 2 - 3
-        rx2, ry2 = top_cx + tw // 2 + 4, top_cy + th // 2 + 3
-        cv2.rectangle(img, (rx1, ry1), (rx2, ry2), (10, 10, 10), -1)
-        cv2.rectangle(img, (rx1, ry1), (rx2, ry2), border_color, 1)
-        cv2.putText(img, label, (top_cx - tw // 2, top_cy + th // 2 - 1),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1, cv2.LINE_AA)
+        # Only draw badge if it's visible on screen
+        if 0 <= top_cx < w_img and 0 <= top_cy < h_img:
+            label = f"ID:{track_id % 1000}"  # keep label short for temp IDs
+            (tw, th), baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.35, 1)
+            
+            rx1, ry1 = top_cx - tw // 2 - 4, top_cy - th // 2 - 3
+            rx2, ry2 = top_cx + tw // 2 + 4, top_cy + th // 2 + 3
+            cv2.rectangle(img, (rx1, ry1), (rx2, ry2), (10, 10, 10), -1)
+            cv2.rectangle(img, (rx1, ry1), (rx2, ry2), border_color, 1)
+            cv2.putText(img, label, (top_cx - tw // 2, top_cy + th // 2 - 1),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1, cv2.LINE_AA)
 
 def draw_gps_panel(img, width, height):
     px1, py1 = width - 240, 40
@@ -512,7 +531,7 @@ LANES_CONFIG = [
         "id": 1,
         "name": "NS_out",
         "polygon": np.array([[400, 850], [680, 850], [550, 240], [460, 240]], dtype=np.int32),
-        "direction": "outbound",
+        "direction": "inbound",
         "color": COLOR_GREEN,
         "text_pos": (490, 645)
     },
@@ -520,7 +539,7 @@ LANES_CONFIG = [
         "id": 2,
         "name": "W_out",
         "polygon": np.array([[680, 850], [960, 850], [710, 240], [550, 240]], dtype=np.int32),
-        "direction": "outbound",
+        "direction": "inbound",
         "color": COLOR_PURPLE,
         "text_pos": (780, 645)
     }
@@ -583,7 +602,10 @@ def get_lane_config(lane_id):
 
 def project_to_fsd_coords(cx, cy):
     cy_norm = np.clip((cy - 240.0) / (850.0 - 240.0), 0.0, 1.0)
-    Y_3D = 80.0 + (1.0 - cy_norm) ** 1.8 * 520.0
+    # Map to Y_3D range [160, 500] so all vehicles are visible on the 540px FSD canvas.
+    # Formula: py = horizon_y + CamZ * focal_len / Y_3D = 120 + 160*400/Y_3D
+    # For Y_3D=160 → py=520 (near-bottom of 540px), Y_3D=500 → py=248 (upper mid)
+    Y_3D = 160.0 + (1.0 - cy_norm) ** 1.8 * 340.0
     left_edge = 390.0 + cy_norm * (120.0 - 390.0)
     right_edge = 710.0 + cy_norm * (960.0 - 710.0)
     road_width = max(right_edge - left_edge, 1.0)

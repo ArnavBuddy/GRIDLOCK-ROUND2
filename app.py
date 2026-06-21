@@ -16,7 +16,30 @@ from werkzeug.utils import secure_filename
 import traffic_guardian_fsd as tg
 
 
-BASE_DIR = Path(__file__).resolve().parent
+import sys
+import os
+
+def get_short_path(path_obj):
+    path_str = str(path_obj.resolve())
+    if os.name == 'nt':
+        import ctypes
+        from ctypes import wintypes
+        GetShortPathNameW = ctypes.windll.kernel32.GetShortPathNameW
+        GetShortPathNameW.argtypes = [wintypes.LPCWSTR, wintypes.LPWSTR, wintypes.DWORD]
+        GetShortPathNameW.restype = wintypes.DWORD
+        
+        buf_size = 256
+        while True:
+            buf = ctypes.create_unicode_buffer(buf_size)
+            needed = GetShortPathNameW(path_str, buf, buf_size)
+            if needed == 0:
+                return Path(path_str)
+            if needed < buf_size:
+                return Path(buf.value)
+            buf_size = needed
+    return Path(path_str)
+
+BASE_DIR = get_short_path(Path(__file__).resolve().parent)
 UPLOAD_DIR = BASE_DIR / "uploads"
 PROCESSED_DIR = BASE_DIR / "processed"
 ALLOWED_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv"}
@@ -29,6 +52,8 @@ app.config["MAX_CONTENT_LENGTH"] = 750 * 1024 * 1024
 
 jobs = {}
 jobs_lock = threading.Lock()
+latest_frames = {}
+frames_lock = threading.Lock()
 model = None
 model_lock = threading.Lock()
 model_stage_dir = None
@@ -89,19 +114,35 @@ def public_job(job):
 
 
 def frame_stream(job_id, frame_key):
+    last_sent_idx = -1
     while True:
         job = get_job(job_id)
         if not job:
             break
 
-        frame = job.get(frame_key)
+        status = job.get("status")
+        
+        frame = None
+        current_idx = -1
+        with frames_lock:
+            frame_data = latest_frames.get(job_id)
+            if frame_data is not None:
+                current_idx = frame_data.get("idx", -1)
+                if current_idx > last_sent_idx:
+                    frame = frame_data.get("frame" if frame_key == "latest_frame" else "fsd")
+
         if frame is not None:
             yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + frame + b"\r\n"
+            last_sent_idx = current_idx
 
-        if job.get("status") in {"complete", "stopped", "error"} and frame is None:
-            break
+        if status in {"complete", "stopped", "error"}:
+            with frames_lock:
+                frame_data = latest_frames.get(job_id)
+                new_idx = frame_data.get("idx", -1) if frame_data else -1
+            if new_idx <= last_sent_idx:
+                break
 
-        time.sleep(0.04)
+        time.sleep(0.015)
 
 
 def scaled_lane_polygons(width, height):
@@ -130,6 +171,10 @@ def draw_label(frame, text, x, y, color):
 
 
 def draw_dashboard_overlay(frame, metrics, progress):
+    """Draw lane colour polygons AND the header stats bar.
+    Called ONCE at the start of each frame, BEFORE bounding boxes are drawn.
+    Returns the lane polygon list for reuse.
+    """
     h, w = frame.shape[:2]
     lanes = scaled_lane_polygons(w, h)
     overlay = frame.copy()
@@ -150,6 +195,23 @@ def draw_dashboard_overlay(frame, metrics, progress):
     cv2.putText(frame, stat_text, (max(20, w - tw - 22), 45), cv2.FONT_HERSHEY_SIMPLEX, 0.48, (245, 247, 255), 1, cv2.LINE_AA)
 
     return lanes
+
+
+def update_stats_bar(frame, metrics, progress):
+    """Refresh ONLY the header stats bar text after bounding boxes have been drawn.
+    Does NOT redraw lane polygons so bounding boxes remain fully visible.
+    """
+    h, w = frame.shape[:2]
+    panel_h = 76
+    cv2.rectangle(frame, (0, 0), (w, panel_h), (7, 12, 24), -1)
+    cv2.putText(frame, "AI TRAFFIC GUARDIAN", (22, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.72, (0, 148, 255), 2, cv2.LINE_AA)
+    cv2.putText(frame, f"Upload analysis active  Progress {progress:.0f}%", (22, 56), cv2.FONT_HERSHEY_SIMPLEX, 0.48, (175, 185, 205), 1, cv2.LINE_AA)
+    stat_text = (
+        f"VEHICLES {metrics['vehicles']}   WRONG WAY {metrics['wrong_way']}   "
+        f"HELMET {metrics['helmet']}   SEATBELT {metrics['seatbelt']}   FPS {metrics['fps']:.1f}"
+    )
+    (tw, _), _ = cv2.getTextSize(stat_text, cv2.FONT_HERSHEY_SIMPLEX, 0.48, 1)
+    cv2.putText(frame, stat_text, (max(20, w - tw - 22), 45), cv2.FONT_HERSHEY_SIMPLEX, 0.48, (245, 247, 255), 1, cv2.LINE_AA)
 
 
 def encode_jpeg(frame, quality=82):
@@ -220,17 +282,13 @@ def process_video(job_id, input_path, output_path):
 
     fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH) or 1280)
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 720)
     
-    writer = cv2.VideoWriter(str(output_path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height))
+    writer = cv2.VideoWriter(str(output_path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (1024, 1024))
     if not writer.isOpened():
         cap.release()
         set_job(job_id, status="error", error="Could not create annotated video.")
         return
 
-    detector = get_model()
-    
     # History buffers
     trajectories = defaultdict(lambda: deque(maxlen=24))
     speed_store = defaultdict(lambda: deque(maxlen=8))
@@ -268,6 +326,7 @@ def process_video(job_id, input_path, output_path):
     tg.init_db()
 
     try:
+        detector = get_model()
         set_job(job_id, status="processing", progress=0)
         while True:
             frame_started = time.time()
@@ -280,6 +339,7 @@ def process_video(job_id, input_path, output_path):
             if not ok:
                 break
 
+            frame = cv2.resize(frame, (1024, 1024))
             frame_idx += 1
             progress = (frame_idx / total_frames * 100.0) if total_frames else 0.0
             
@@ -292,6 +352,7 @@ def process_video(job_id, input_path, output_path):
                 conf=0.25,
                 iou=0.5,
                 classes=[0, 1, 2, 3, 5, 7],
+                tracker="bytetrack.yaml",  # ByteTrack uses Kalman filter — no optical flow GMC errors
                 verbose=False,
             )
             
@@ -302,33 +363,38 @@ def process_video(job_id, input_path, output_path):
             # Parse tracked bounding boxes
             if results and results[0].boxes is not None:
                 boxes = results[0].boxes
+                xyxy_boxes = boxes.xyxy.int().cpu().tolist()
+                class_ids = boxes.cls.int().cpu().tolist()
+                confs = boxes.conf.cpu().tolist()
+                
+                # Use persistent track IDs if available, otherwise use frame-scoped index
                 if boxes.id is not None:
                     track_ids = boxes.id.int().cpu().tolist()
-                    xyxy_boxes = boxes.xyxy.int().cpu().tolist()
-                    class_ids = boxes.cls.int().cpu().tolist()
-                    confs = boxes.conf.cpu().tolist()
+                else:
+                    # Fallback: assign temporary IDs so boxes still render
+                    track_ids = [frame_idx * 1000 + i for i in range(len(xyxy_boxes))]
+                
+                for track_id, bbox, cls_id, conf in zip(track_ids, xyxy_boxes, class_ids, confs):
+                    current_ids.add(track_id)
+                    class_name = CLASS_MAP.get(cls_id, "car")
                     
-                    for track_id, bbox, cls_id, conf in zip(track_ids, xyxy_boxes, class_ids, confs):
-                        current_ids.add(track_id)
-                        class_name = CLASS_MAP.get(cls_id, "car")
-                        
-                        # Correct YOLO nano's class confusion (confusing SUVs/pickups with buses)
-                        if class_name == "bus":
-                            bbox_area = (bbox[2] - bbox[0]) * (bbox[3] - bbox[1])
-                            if bbox_area < 25000:
-                                class_name = "suv"
-                                
-                        obj = {
-                            "track_id": track_id,
-                            "bbox": bbox,
-                            "cls_id": cls_id,
-                            "class_name": class_name,
-                            "conf": conf
-                        }
-                        if cls_id == 0:
-                            pedestrians.append(obj)
-                        else:
-                            vehicles.append(obj)
+                    # Correct YOLO nano's class confusion (confusing SUVs/pickups with buses)
+                    if class_name == "bus":
+                        bbox_area = (bbox[2] - bbox[0]) * (bbox[3] - bbox[1])
+                        if bbox_area < 25000:
+                            class_name = "suv"
+                            
+                    obj = {
+                        "track_id": track_id,
+                        "bbox": bbox,
+                        "cls_id": cls_id,
+                        "class_name": class_name,
+                        "conf": conf
+                    }
+                    if cls_id == 0:
+                        pedestrians.append(obj)
+                    else:
+                        vehicles.append(obj)
 
             # Build vehicle snapshots and ahead flags for wrong way logic
             vehicle_snapshots = []
@@ -429,14 +495,16 @@ def process_video(job_id, input_path, output_path):
                 
                 if veh["class_name"] in ["motorcycle", "bicycle"]:
                     violation_type = "HELMET"
-                    if should_check or track_id not in helmet_status_cache:
-                        zoomed = tg.zoom_crop_vehicle(frame, veh["bbox"], pad_ratio=0.20, min_size=640)
-                        if zoomed is not None:
-                            status = tg.check_helmet_on_bike(zoomed, track_id)
-                            if status != "UNKNOWN":
-                                helmet_status_cache[track_id] = status
-                            elif track_id not in helmet_status_cache:
-                                helmet_status_cache[track_id] = "SCANNING"
+                    cached = helmet_status_cache.get(track_id, "SCANNING")
+                    if cached not in ["VIOLATION", "OK"]:
+                        if should_check or track_id not in helmet_status_cache:
+                            zoomed = tg.zoom_crop_vehicle(frame, veh["bbox"], pad_ratio=0.20, min_size=640)
+                            if zoomed is not None:
+                                status = tg.check_helmet_on_bike(zoomed, track_id)
+                                if status != "UNKNOWN":
+                                    helmet_status_cache[track_id] = status
+                                elif track_id not in helmet_status_cache:
+                                    helmet_status_cache[track_id] = "SCANNING"
                     
                     cached = helmet_status_cache.get(track_id, "SCANNING")
                     violation_status = cached
@@ -445,14 +513,16 @@ def process_video(job_id, input_path, output_path):
                          
                 elif veh["class_name"] in ["car", "bus", "truck", "suv"]:
                     violation_type = "SEATBELT"
-                    if should_check or track_id not in seatbelt_status_cache:
-                        zoomed = tg.zoom_crop_vehicle(frame, veh["bbox"], pad_ratio=0.10, min_size=640)
-                        if zoomed is not None:
-                            status, n_found = tg.check_seatbelt_zoomed(zoomed, detector, track_id, device=device)
-                            if status != "UNKNOWN":
-                                seatbelt_status_cache[track_id] = (status, n_found)
-                            elif track_id not in seatbelt_status_cache:
-                                seatbelt_status_cache[track_id] = ("SCANNING", 0)
+                    cached = seatbelt_status_cache.get(track_id, ("SCANNING", 0))
+                    if cached[0] not in ["VIOLATION", "OK"]:
+                        if should_check or track_id not in seatbelt_status_cache:
+                            zoomed = tg.zoom_crop_vehicle(frame, veh["bbox"], pad_ratio=0.10, min_size=640)
+                            if zoomed is not None:
+                                status, n_found = tg.check_seatbelt_zoomed(zoomed, detector, track_id, device=device)
+                                if status != "UNKNOWN":
+                                    seatbelt_status_cache[track_id] = (status, n_found)
+                                elif track_id not in seatbelt_status_cache:
+                                    seatbelt_status_cache[track_id] = ("SCANNING", 0)
                     
                     cached = seatbelt_status_cache.get(track_id, ("SCANNING", 0))
                     violation_status = cached[0]
@@ -481,61 +551,6 @@ def process_video(job_id, input_path, output_path):
                     "wrong_way_confidence": wrong_way_result["confidence"],
                     "is_triple_riding": is_triple_riding,
                 })
-
-            # Full-frame helmet scanning
-            helmet_frame_detections = []
-            associated_no_helmets = set()
-            if tg.helmet_model is not None and (frame_idx % 5 == 0):
-                try:
-                    h_results = tg.helmet_model(frame, conf=0.30, verbose=False)
-                    if len(h_results) > 0 and h_results[0].boxes is not None:
-                        h_boxes = h_results[0].boxes
-                        h_xyxy = h_boxes.xyxy.int().cpu().tolist()
-                        h_clss = h_boxes.cls.int().cpu().tolist()
-                        h_confs = h_boxes.conf.cpu().tolist()
-                        for hbox, hcls, hconf in zip(h_xyxy, h_clss, h_confs):
-                            cls_name = {0: "BICYCLIST", 1: "DRIVER", 2: "HELMET", 3: "NO-HELMET"}.get(hcls, "?")
-                            helmet_frame_detections.append({
-                                "bbox": hbox,
-                                "cls_id": hcls,
-                                "cls_name": cls_name,
-                                "conf": hconf,
-                            })
-                except Exception:
-                    pass
-            
-            if frame_idx % 5 == 0:
-                last_helmet_detections = helmet_frame_detections
-
-            # Association of Violations
-            violating_pedestrians = set()
-            for ped in pedestrians:
-                ped_track_id = ped["track_id"]
-                px1, py1, px2, py2 = ped["bbox"]
-                pcx, pcy = (px1 + px2) // 2, py2
-                ped_X_3D, ped_Y_3D = tg.project_to_fsd_coords(pcx, pcy)
-                
-                # Check overlap with no-helmet detections
-                has_no_helmet_overlap = False
-                for idx, h_det in enumerate(last_helmet_detections):
-                    if h_det["cls_id"] == tg.HELMET_CLS_NO_HELMET:
-                        overlap = tg.get_overlap_ratio(ped["bbox"], h_det["bbox"])
-                        if overlap > 0.40 or tg.center_inside(h_det["bbox"], ped["bbox"]):
-                            has_no_helmet_overlap = True
-                            associated_no_helmets.add(idx)
-                            break
-                            
-                is_rider = False
-                for idx, h_det in enumerate(last_helmet_detections):
-                    if h_det["cls_id"] in [tg.HELMET_CLS_BICYCLIST, tg.HELMET_CLS_DRIVER, tg.HELMET_CLS_HELMET, tg.HELMET_CLS_NO_HELMET]:
-                        overlap = tg.get_overlap_ratio(ped["bbox"], h_det["bbox"])
-                        if overlap > 0.35:
-                            is_rider = True
-                            break
-                            
-                ped["is_rider"] = is_rider
-                if has_no_helmet_overlap:
-                    violating_pedestrians.add(ped_track_id)
 
             # Combine violations for each vehicle
             for v_info in vehicle_data:
@@ -748,6 +763,10 @@ def process_video(job_id, input_path, output_path):
             elapsed = max(time.time() - started, 0.001)
             metrics["fps"] = frame_idx / elapsed
             
+            # Refresh ONLY the header stats bar (no lane re-draw) so bounding boxes stay visible.
+            # draw_dashboard_overlay was already called above to lay the lane polygons background.
+            update_stats_bar(enhanced_frame, metrics, progress)
+            
             # Write annotated frame
             writer.write(enhanced_frame)
             
@@ -755,17 +774,22 @@ def process_video(job_id, input_path, output_path):
             camera_jpeg = encode_jpeg(enhanced_frame)
             fsd_jpeg = encode_jpeg(map_img)
             
+            if camera_jpeg is not None or fsd_jpeg is not None:
+                with frames_lock:
+                    latest_frames[job_id] = {
+                        "frame": camera_jpeg,
+                        "fsd": fsd_jpeg,
+                        "idx": frame_idx
+                    }
+            
             update_payload = {
                 "status": "processing",
                 "progress": round(progress, 1),
                 "metrics": metrics,
                 "violations": violation_feed,
                 "evidence": evidence,
+                "frame_idx": frame_idx,
             }
-            if camera_jpeg is not None:
-                update_payload["latest_frame"] = camera_jpeg
-            if fsd_jpeg is not None:
-                update_payload["latest_fsd_frame"] = fsd_jpeg
             set_job(job_id, **update_payload)
 
             # Frame rate sync
@@ -861,8 +885,7 @@ def upload_video():
             "output_url": None,
             "error": None,
             "cancel_requested": False,
-            "latest_frame": None,
-            "latest_fsd_frame": None,
+            "frame_idx": -1,
         }
 
     thread = threading.Thread(target=process_video, args=(job_id, input_path, output_path), daemon=True)

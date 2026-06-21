@@ -30,9 +30,28 @@ const metricFields = {
 };
 
 function setTheme(theme) {
-    document.body.classList.toggle("theme-light", theme === "light");
-    document.body.classList.toggle("theme-dark", theme !== "light");
-    themeToggle.textContent = theme === "light" ? "Dark Theme" : "Light Theme";
+    document.body.classList.remove("theme-dark", "theme-light", "theme-neon", "theme-crimson");
+    document.body.classList.add(`theme-${theme}`);
+    
+    if (themeToggle) {
+        const themeNames = {
+            dark: "Default Dark",
+            light: "Light Mode",
+            neon: "Neon Blue",
+            crimson: "Crimson Red"
+        };
+        themeToggle.textContent = `Theme: ${themeNames[theme] || "Default Dark"}`;
+    }
+
+    const themeButtons = document.querySelectorAll(".theme-btn");
+    themeButtons.forEach((btn) => {
+        if (btn.getAttribute("data-theme") === theme) {
+            btn.classList.add("active");
+        } else {
+            btn.classList.remove("active");
+        }
+    });
+
     localStorage.setItem("trafficiq-theme", theme);
 }
 
@@ -246,13 +265,74 @@ function refreshDashboard() {
     videoEmpty.style.display = "grid";
 }
 
+// Theme Initialization & Event Listeners
+const savedTheme = localStorage.getItem("trafficiq-theme") || "dark";
+setTheme(savedTheme);
+
 if (themeToggle) {
-    const savedTheme = localStorage.getItem("trafficiq-theme") || "dark";
-    setTheme(savedTheme);
     themeToggle.addEventListener("click", () => {
-        setTheme(document.body.classList.contains("theme-light") ? "dark" : "light");
+        const themes = ["dark", "light", "neon", "crimson"];
+        const currentTheme = localStorage.getItem("trafficiq-theme") || "dark";
+        let nextIndex = (themes.indexOf(currentTheme) + 1) % themes.length;
+        if (nextIndex === -1) nextIndex = 0;
+        setTheme(themes[nextIndex]);
     });
 }
+
+document.querySelectorAll(".theme-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+        const selectedTheme = btn.getAttribute("data-theme");
+        setTheme(selectedTheme);
+    });
+});
+
+// Side Navigation Scroll Highlighting
+const navLinks = document.querySelectorAll(".side-nav a");
+const scrollSections = [
+    { id: "status", el: document.getElementById("status") },
+    { id: "settings", el: document.getElementById("settings") },
+    { id: "evidence", el: document.getElementById("evidence") },
+    { id: "analytics", el: document.getElementById("analytics") },
+    { id: "camera", el: document.getElementById("camera") },
+];
+
+function updateActiveNavOnScroll() {
+    let currentId = "dashboard";
+    const scrollPosition = window.scrollY + 200; // offset trigger
+
+    for (const section of scrollSections) {
+        if (section.el) {
+            const top = section.el.getBoundingClientRect().top + window.scrollY;
+            if (scrollPosition >= top) {
+                currentId = section.id;
+                break;
+            }
+        }
+    }
+
+    navLinks.forEach((link) => {
+        if (link.getAttribute("href") === `#${currentId}`) {
+            link.classList.add("active");
+        } else {
+            link.classList.remove("active");
+        }
+    });
+}
+
+window.addEventListener("scroll", updateActiveNavOnScroll);
+
+navLinks.forEach((link) => {
+    link.addEventListener("click", () => {
+        // Temporarily remove scroll listener to avoid clash during smooth scroll animation
+        window.removeEventListener("scroll", updateActiveNavOnScroll);
+        navLinks.forEach((l) => l.classList.remove("active"));
+        link.classList.add("active");
+        
+        setTimeout(() => {
+            window.addEventListener("scroll", updateActiveNavOnScroll);
+        }, 800);
+    });
+});
 
 fileInput?.addEventListener("change", () => {
     const file = fileInput.files[0];

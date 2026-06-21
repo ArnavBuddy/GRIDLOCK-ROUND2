@@ -10,7 +10,7 @@
     <div class="app-shell">
         <aside class="sidebar">
             <div class="brand-row">
-                <div class="logo-box">TIQ</div>
+                <img src="{{ url_for('static', filename='logo.png') }}" class="logo-img" alt="BTP Logo">
                 <div>
                     <h2>TrafficIQ</h2>
                     <p>Command Center</p>
@@ -31,12 +31,11 @@
             <header class="hero">
                 <div>
                     <p class="eyebrow">AI TRAFFIC GUARDIAN</p>
-                    <h1 id="greeting">Good Afternoon, Saurabh</h1>
+                    <h1 id="greeting">Good Afternoon</h1>
                     <p class="subhead">Live command overview for enforcement, evidence, and traffic intelligence.</p>
                 </div>
                 <div class="header-actions">
                     <button class="theme-toggle" id="themeToggle" type="button">Light Theme</button>
-                    <span class="preview-pill">Preview Mode</span>
                 </div>
             </header>
 
@@ -154,6 +153,85 @@
                     <input type="text" placeholder="dd/mm/yyyy">
                 </div>
                 <div class="evidence-list" id="evidenceList">No evidence matches the current filters.</div>
+            </section>
+
+            <section class="panel settings-panel" id="settings">
+                <div class="panel-header">
+                    <h2>Settings</h2>
+                    <span>System Preferences</span>
+                </div>
+                <div class="settings-content">
+                    <h3>SELECT DASHBOARD THEME</h3>
+                    <div class="theme-selector">
+                        <button class="theme-btn active" data-theme="dark" type="button">
+                            <div class="theme-btn-title">Default Dark</div>
+                            <div class="theme-btn-desc">Cyberpunk Orange</div>
+                            <div class="theme-swatch">
+                                <span style="background: #070b14;"></span>
+                                <span style="background: #101929;"></span>
+                                <span style="background: #ff951a;"></span>
+                            </div>
+                        </button>
+                        <button class="theme-btn" data-theme="light" type="button">
+                            <div class="theme-btn-title">Light Mode</div>
+                            <div class="theme-btn-desc">Clean Slate</div>
+                            <div class="theme-swatch">
+                                <span style="background: #eef3f8;"></span>
+                                <span style="background: #ffffff;"></span>
+                                <span style="background: #ff7a16;"></span>
+                            </div>
+                        </button>
+                        <button class="theme-btn" data-theme="neon" type="button">
+                            <div class="theme-btn-title">Neon Blue</div>
+                            <div class="theme-btn-desc">Matrix Cyan</div>
+                            <div class="theme-swatch">
+                                <span style="background: #030812;"></span>
+                                <span style="background: #0a1832;"></span>
+                                <span style="background: #00f0ff;"></span>
+                            </div>
+                        </button>
+                        <button class="theme-btn" data-theme="crimson" type="button">
+                            <div class="theme-btn-title">Crimson Red</div>
+                            <div class="theme-btn-desc">Security Warning</div>
+                            <div class="theme-swatch">
+                                <span style="background: #100609;"></span>
+                                <span style="background: #240f16;"></span>
+                                <span style="background: #ff2d55;"></span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel status-panel" id="status">
+                <div class="panel-header">
+                    <h2>System Status</h2>
+                    <span>Diagnostics</span>
+                </div>
+                <div class="status-content">
+                    <div class="status-grid">
+                        <div class="status-card">
+                            <span class="status-card-label">AI INFERENCE ENGINE</span>
+                            <strong class="status-card-val" id="statusEngineVal">ONLINE (YOLOv8 + EasyOCR)</strong>
+                            <div class="status-card-indicator status-ok"></div>
+                        </div>
+                        <div class="status-card">
+                            <span class="status-card-label">DATABASE CONNECTION</span>
+                            <strong class="status-card-val" id="statusDbVal">CONNECTED (SQLite)</strong>
+                            <div class="status-card-indicator status-ok"></div>
+                        </div>
+                        <div class="status-card">
+                            <span class="status-card-label">SYSTEM UPTIME</span>
+                            <strong class="status-card-val" id="statusUptimeVal">99.98%</strong>
+                            <div class="status-card-indicator status-ok"></div>
+                        </div>
+                        <div class="status-card">
+                            <span class="status-card-label">API SERVER STATUS</span>
+                            <strong class="status-card-val" id="statusApiVal">HEALTHY</strong>
+                            <div class="status-card-indicator status-ok"></div>
+                        </div>
+                    </div>
+                </div>
             </section>
         </main>
     </div>
