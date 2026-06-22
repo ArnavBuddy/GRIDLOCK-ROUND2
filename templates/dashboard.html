@@ -13,85 +13,85 @@
                 <img src="{{ url_for('static', filename='logo.png') }}" class="logo-img" alt="BTP Logo">
                 <div>
                     <h2>TrafficIQ</h2>
-                    <p>Command Center</p>
+                    <p data-i18n="commandCenter">Command Center</p>
                 </div>
             </div>
 
             <nav class="side-nav" aria-label="Dashboard sections">
-                <a href="#dashboard" class="active">Dashboard</a>
-                <a href="#camera">Live Cameras</a>
-                <a href="#evidence">Evidence Vault</a>
-                <a href="#analytics">Analytics</a>
-                <a href="#settings">Settings</a>
-                <a href="#status">System Status</a>
+                <a href="#dashboard" class="active" data-i18n="navDashboard">Dashboard</a>
+                <a href="#camera" data-i18n="navCameras">Live Cameras</a>
+                <a href="#evidence" data-i18n="navEvidence">Evidence Vault</a>
+                <a href="#analytics" data-i18n="navAnalytics">Analytics</a>
+                <a href="#settings" data-i18n="navSettings">Settings</a>
+                <a href="#status" data-i18n="navStatus">System Status</a>
             </nav>
         </aside>
 
         <main class="dashboard-main" id="dashboard">
             <header class="hero">
                 <div>
-                    <p class="eyebrow">AI TRAFFIC GUARDIAN</p>
-                    <h1 id="greeting">Good Afternoon</h1>
-                    <p class="subhead">Live command overview for enforcement, evidence, and traffic intelligence.</p>
+                    <p class="eyebrow" data-i18n="eyebrow">AI TRAFFIC GUARDIAN</p>
+                    <h1 id="greeting">Good Morning</h1>
+                    <p class="subhead" data-i18n="subhead">Live command overview for enforcement, evidence, and traffic intelligence.</p>
                 </div>
                 <div class="header-actions">
-                    <button class="theme-toggle" id="themeToggle" type="button">Light Theme</button>
+                    <button class="theme-toggle" id="themeToggle" type="button" data-i18n="lightTheme">Light Theme</button>
                 </div>
             </header>
 
             <section class="control-panel panel">
                 <div class="source-tabs">
-                    <button type="button" disabled>Live Feed</button>
-                    <button type="button" class="active">Upload Traffic Video</button>
-                    <button type="button" disabled>Connect to Live Camera</button>
+                    <button type="button" disabled data-i18n="liveFeed">Live Feed</button>
+                    <button type="button" class="active" data-i18n="uploadVideo">Upload Traffic Video</button>
+                    <button type="button" disabled data-i18n="connectCamera">Connect to Live Camera</button>
                 </div>
 
-                <label class="field-label" for="trafficVideo">UPLOAD TRAFFIC VIDEO</label>
+                <label class="field-label" for="trafficVideo" data-i18n="uploadLabel">UPLOAD TRAFFIC VIDEO</label>
                 <input class="file-input" id="trafficVideo" type="file" accept=".mp4,.avi,.mov,.mkv,video/*">
-                <p class="hint">Allowed traffic video types: MP4, AVI, MOV, MKV</p>
+                <p class="hint" data-i18n="uploadHint">Allowed traffic video types: MP4, AVI, MOV, MKV</p>
 
                 <div class="engine-actions">
-                    <button class="primary-btn" id="startEngine" type="button">Start Engine</button>
-                    <button class="danger-btn" id="stopEngine" type="button">Stop Engine</button>
-                    <button class="ghost-btn" id="refreshDashboard" type="button">Refresh</button>
+                    <button class="primary-btn" id="startEngine" type="button" data-i18n="startEngine">Start Engine</button>
+                    <button class="danger-btn" id="stopEngine" type="button" data-i18n="stopEngine">Stop Engine</button>
+                    <button class="ghost-btn" id="refreshDashboard" type="button" data-i18n="refresh">Refresh</button>
                 </div>
-                <p class="engine-status" id="engineStatus">AI engine offline. Upload a video to begin.</p>
+                <p class="engine-status" id="engineStatus" data-i18n="engineOffline">AI engine offline. Upload a video to begin.</p>
             </section>
 
             <section class="metric-grid" aria-label="Traffic metrics">
-                <article class="metric-card"><span>VEHICLES</span><strong id="metricVehicles">0</strong><i></i></article>
-                <article class="metric-card"><span>VIOLATIONS TODAY</span><strong id="metricViolations">0</strong><i></i></article>
-                <article class="metric-card"><span>WRONG WAY</span><strong id="metricWrongWay">0</strong><i></i></article>
-                <article class="metric-card"><span>HELMET</span><strong id="metricHelmet">0</strong><i></i></article>
-                <article class="metric-card"><span>SEATBELT</span><strong id="metricSeatbelt">0</strong><i></i></article>
-                <article class="metric-card"><span>PARKING</span><strong id="metricParking">0</strong><i></i></article>
-                <article class="metric-card"><span>TRAFFIC DENSITY</span><strong id="metricDensity">0.00</strong><i></i></article>
-                <article class="metric-card"><span>FPS</span><strong id="metricFps">0</strong><i></i></article>
+                <article class="metric-card"><span data-i18n="metricVehicles">VEHICLES</span><strong id="metricVehicles">0</strong><i></i></article>
+                <article class="metric-card"><span data-i18n="metricViolations">VIOLATIONS TODAY</span><strong id="metricViolations">0</strong><i></i></article>
+                <article class="metric-card"><span data-i18n="metricWrongWay">WRONG WAY</span><strong id="metricWrongWay">0</strong><i></i></article>
+                <article class="metric-card"><span data-i18n="metricHelmet">HELMET</span><strong id="metricHelmet">0</strong><i></i></article>
+                <article class="metric-card"><span data-i18n="metricSeatbelt">SEATBELT</span><strong id="metricSeatbelt">0</strong><i></i></article>
+                <article class="metric-card"><span data-i18n="metricParking">PARKING</span><strong id="metricParking">0</strong><i></i></article>
+                <article class="metric-card"><span data-i18n="metricDensity">TRAFFIC DENSITY</span><strong id="metricDensity">0.00</strong><i></i></article>
+                <article class="metric-card"><span data-i18n="metricFps">FPS</span><strong id="metricFps">0</strong><i></i></article>
             </section>
 
             <section class="workspace-grid" id="camera">
                 <article class="panel camera-panel">
                     <div class="panel-header">
-                        <h2>Annotated AI Camera</h2>
-                        <span id="videoState">Video Preview</span>
+                        <h2 data-i18n="annotatedCamera">Annotated AI Camera</h2>
+                        <span id="videoState" data-i18n="videoPreview">Video Preview</span>
                     </div>
                     <div class="video-frame">
                         <img id="liveStream" alt="Realtime annotated detection stream">
                         <video id="annotatedVideo" controls muted playsinline></video>
-                        <div class="empty-state" id="videoEmpty">Upload a traffic video and start the engine.</div>
+                        <div class="empty-state" id="videoEmpty" data-i18n="videoEmpty">Upload a traffic video and start the engine.</div>
                     </div>
                 </article>
 
                 <article class="panel fsd-panel">
                     <div class="panel-header">
-                        <h2>3D FSD Map</h2>
-                        <span id="fsdState">AI engine offline</span>
+                        <h2 data-i18n="fsdMap">3D FSD Map</h2>
+                        <span id="fsdState" data-i18n="engineOfflineShort">AI engine offline</span>
                     </div>
                     <div class="fsd-canvas">
                         <img id="fsdStream" alt="Realtime 3D FSD map stream">
                         <div class="road road-left"></div>
                         <div class="road road-right"></div>
-                        <p id="fsdMessage">WAITING FOR FSD VISUALIZATION</p>
+                        <p id="fsdMessage" data-i18n="waitingFsd">WAITING FOR FSD VISUALIZATION</p>
                     </div>
                 </article>
             </section>
@@ -99,23 +99,23 @@
             <section class="lower-grid">
                 <article class="panel feed-panel">
                     <div class="panel-header">
-                        <h2>Live Violation Feed</h2>
-                        <span>Newest first</span>
+                        <h2 data-i18n="violationFeed">Live Violation Feed</h2>
+                        <span data-i18n="newestFirst">Newest first</span>
                     </div>
                     <div class="table-wrap">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>TIME</th>
-                                    <th>VEHICLE</th>
-                                    <th>TRACKER</th>
-                                    <th>VIOLATION</th>
-                                    <th>PLATE</th>
-                                    <th>CONFIDENCE</th>
+                                    <th data-i18n="colTime">TIME</th>
+                                    <th data-i18n="colVehicle">VEHICLE</th>
+                                    <th data-i18n="colTracker">TRACKER</th>
+                                    <th data-i18n="colViolation">VIOLATION</th>
+                                    <th data-i18n="colPlate">PLATE</th>
+                                    <th data-i18n="colConfidence">CONFIDENCE</th>
                                 </tr>
                             </thead>
                             <tbody id="violationRows">
-                                <tr><td colspan="6">No violations logged yet.</td></tr>
+                                <tr><td colspan="6" data-i18n="noViolations">No violations logged yet.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -123,14 +123,14 @@
 
                 <article class="panel analytics-panel" id="analytics">
                     <div class="panel-header">
-                        <h2>Analytics</h2>
-                        <span>Operational summary</span>
+                        <h2 data-i18n="analyticsTitle">Analytics</h2>
+                        <span data-i18n="operationalSummary">Operational summary</span>
                     </div>
                     <div class="analytics-grid">
-                        <div class="mini-chart"><h3>VIOLATION DISTRIBUTION</h3><p>None <span><b></b></span> 0</p></div>
-                        <div class="mini-chart"><h3>VEHICLE DISTRIBUTION</h3><p>None <span><b></b></span> 0</p></div>
-                        <div class="mini-chart"><h3>HOURLY VIOLATIONS</h3><p>None <span><b></b></span> 0</p></div>
-                        <div class="mini-chart"><h3>TRAFFIC DENSITY</h3>
+                        <div class="mini-chart"><h3 data-i18n="violationDist">VIOLATION DISTRIBUTION</h3><p>None <span><b></b></span> 0</p></div>
+                        <div class="mini-chart"><h3 data-i18n="vehicleDist">VEHICLE DISTRIBUTION</h3><p>None <span><b></b></span> 0</p></div>
+                        <div class="mini-chart"><h3 data-i18n="hourlyViolations">HOURLY VIOLATIONS</h3><p>None <span><b></b></span> 0</p></div>
+                        <div class="mini-chart"><h3 data-i18n="trafficDensity">TRAFFIC DENSITY</h3>
                             <p>T1 <span><b></b></span> 0</p>
                             <p>T2 <span><b></b></span> 0</p>
                             <p>T3 <span><b></b></span> 0</p>
@@ -143,29 +143,39 @@
 
             <section class="panel evidence-panel" id="evidence">
                 <div class="panel-header">
-                    <h2>Evidence Vault</h2>
-                    <span id="evidenceCount">0 items</span>
+                    <h2 data-i18n="evidenceVault">Evidence Vault</h2>
+                    <span id="evidenceCount">0 <span data-i18n="items">items</span></span>
                 </div>
                 <div class="evidence-filters">
-                    <input id="evidenceSearch" type="search" placeholder="Search plate, tracker, violation">
-                    <select><option>All vehicles</option><option>Cars</option><option>Motorcycles</option><option>Trucks</option></select>
-                    <select><option>All violations</option><option>Wrong way</option><option>Helmet</option><option>Seatbelt</option></select>
+                    <input id="evidenceSearch" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="Search plate, tracker, violation">
+                    <select>
+                        <option data-i18n="allVehicles">All vehicles</option>
+                        <option data-i18n="cars">Cars</option>
+                        <option data-i18n="motorcycles">Motorcycles</option>
+                        <option data-i18n="trucks">Trucks</option>
+                    </select>
+                    <select>
+                        <option data-i18n="allViolations">All violations</option>
+                        <option data-i18n="wrongWay">Wrong way</option>
+                        <option data-i18n="helmet">Helmet</option>
+                        <option data-i18n="seatbelt">Seatbelt</option>
+                    </select>
                     <input type="text" placeholder="dd/mm/yyyy">
                 </div>
-                <div class="evidence-list" id="evidenceList">No evidence matches the current filters.</div>
+                <div class="evidence-list" id="evidenceList" data-i18n="noEvidence">No evidence matches the current filters.</div>
             </section>
 
             <section class="panel settings-panel" id="settings">
                 <div class="panel-header">
-                    <h2>Settings</h2>
-                    <span>System Preferences</span>
+                    <h2 data-i18n="navSettings">Settings</h2>
+                    <span data-i18n="systemPrefs">System Preferences</span>
                 </div>
                 <div class="settings-content">
-                    <h3>SELECT DASHBOARD THEME</h3>
+                    <h3 data-i18n="selectTheme">SELECT DASHBOARD THEME</h3>
                     <div class="theme-selector">
                         <button class="theme-btn active" data-theme="dark" type="button">
-                            <div class="theme-btn-title">Default Dark</div>
-                            <div class="theme-btn-desc">Cyberpunk Orange</div>
+                            <div class="theme-btn-title" data-i18n="themeDark">Default Dark</div>
+                            <div class="theme-btn-desc" data-i18n="themeDarkDesc">Cyberpunk Orange</div>
                             <div class="theme-swatch">
                                 <span style="background: #070b14;"></span>
                                 <span style="background: #101929;"></span>
@@ -173,8 +183,8 @@
                             </div>
                         </button>
                         <button class="theme-btn" data-theme="light" type="button">
-                            <div class="theme-btn-title">Light Mode</div>
-                            <div class="theme-btn-desc">Clean Slate</div>
+                            <div class="theme-btn-title" data-i18n="themeLight">Light Mode</div>
+                            <div class="theme-btn-desc" data-i18n="themeLightDesc">Clean Slate</div>
                             <div class="theme-swatch">
                                 <span style="background: #eef3f8;"></span>
                                 <span style="background: #ffffff;"></span>
@@ -182,8 +192,8 @@
                             </div>
                         </button>
                         <button class="theme-btn" data-theme="neon" type="button">
-                            <div class="theme-btn-title">Neon Blue</div>
-                            <div class="theme-btn-desc">Matrix Cyan</div>
+                            <div class="theme-btn-title" data-i18n="themeNeon">Neon Blue</div>
+                            <div class="theme-btn-desc" data-i18n="themeNeonDesc">Matrix Cyan</div>
                             <div class="theme-swatch">
                                 <span style="background: #030812;"></span>
                                 <span style="background: #0a1832;"></span>
@@ -191,8 +201,8 @@
                             </div>
                         </button>
                         <button class="theme-btn" data-theme="crimson" type="button">
-                            <div class="theme-btn-title">Crimson Red</div>
-                            <div class="theme-btn-desc">Security Warning</div>
+                            <div class="theme-btn-title" data-i18n="themeCrimson">Crimson Red</div>
+                            <div class="theme-btn-desc" data-i18n="themeCrimsonDesc">Security Warning</div>
                             <div class="theme-swatch">
                                 <span style="background: #100609;"></span>
                                 <span style="background: #240f16;"></span>
@@ -200,33 +210,48 @@
                             </div>
                         </button>
                     </div>
+
+                    <!-- Language Selection -->
+                    <h3 data-i18n="selectLanguage" style="margin-top:2rem;">SELECT LANGUAGE / ಭಾಷೆ ಆಯ್ಕೆ</h3>
+                    <div class="language-selector">
+                        <button class="lang-btn active" data-lang="en" type="button" id="langEn">
+                            <div class="lang-flag">🇬🇧</div>
+                            <div class="lang-name">English</div>
+                            <div class="lang-native">English</div>
+                        </button>
+                        <button class="lang-btn" data-lang="kn" type="button" id="langKn">
+                            <div class="lang-flag">🇮🇳</div>
+                            <div class="lang-name">Kannada</div>
+                            <div class="lang-native">ಕನ್ನಡ</div>
+                        </button>
+                    </div>
                 </div>
             </section>
 
             <section class="panel status-panel" id="status">
                 <div class="panel-header">
-                    <h2>System Status</h2>
-                    <span>Diagnostics</span>
+                    <h2 data-i18n="systemStatus">System Status</h2>
+                    <span data-i18n="diagnostics">Diagnostics</span>
                 </div>
                 <div class="status-content">
                     <div class="status-grid">
                         <div class="status-card">
-                            <span class="status-card-label">AI INFERENCE ENGINE</span>
+                            <span class="status-card-label" data-i18n="statusEngine">AI INFERENCE ENGINE</span>
                             <strong class="status-card-val" id="statusEngineVal">ONLINE (YOLOv8 + EasyOCR)</strong>
                             <div class="status-card-indicator status-ok"></div>
                         </div>
                         <div class="status-card">
-                            <span class="status-card-label">DATABASE CONNECTION</span>
+                            <span class="status-card-label" data-i18n="statusDb">DATABASE CONNECTION</span>
                             <strong class="status-card-val" id="statusDbVal">CONNECTED (SQLite)</strong>
                             <div class="status-card-indicator status-ok"></div>
                         </div>
                         <div class="status-card">
-                            <span class="status-card-label">SYSTEM UPTIME</span>
+                            <span class="status-card-label" data-i18n="statusUptime">SYSTEM UPTIME</span>
                             <strong class="status-card-val" id="statusUptimeVal">99.98%</strong>
                             <div class="status-card-indicator status-ok"></div>
                         </div>
                         <div class="status-card">
-                            <span class="status-card-label">API SERVER STATUS</span>
+                            <span class="status-card-label" data-i18n="statusApi">API SERVER STATUS</span>
                             <strong class="status-card-val" id="statusApiVal">HEALTHY</strong>
                             <div class="status-card-indicator status-ok"></div>
                         </div>
@@ -237,5 +262,216 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script>
+    // ============================================================
+    // i18n — Kannada / English Translation Engine
+    // ============================================================
+    const TRANSLATIONS = {
+        en: {
+            commandCenter: "Command Center",
+            navDashboard: "Dashboard",
+            navCameras: "Live Cameras",
+            navEvidence: "Evidence Vault",
+            navAnalytics: "Analytics",
+            navSettings: "Settings",
+            navStatus: "System Status",
+            eyebrow: "AI TRAFFIC GUARDIAN",
+            subhead: "Live command overview for enforcement, evidence, and traffic intelligence.",
+            lightTheme: "Light Theme",
+            darkTheme: "Dark Theme",
+            liveFeed: "Live Feed",
+            uploadVideo: "Upload Traffic Video",
+            connectCamera: "Connect to Live Camera",
+            uploadLabel: "UPLOAD TRAFFIC VIDEO",
+            uploadHint: "Allowed traffic video types: MP4, AVI, MOV, MKV",
+            startEngine: "Start Engine",
+            stopEngine: "Stop Engine",
+            refresh: "Refresh",
+            engineOffline: "AI engine offline. Upload a video to begin.",
+            engineOnline: "AI engine online",
+            engineProcessing: "Processing video…",
+            metricVehicles: "VEHICLES",
+            metricViolations: "VIOLATIONS TODAY",
+            metricWrongWay: "WRONG WAY",
+            metricHelmet: "HELMET",
+            metricSeatbelt: "SEATBELT",
+            metricParking: "PARKING",
+            metricDensity: "TRAFFIC DENSITY",
+            metricFps: "FPS",
+            annotatedCamera: "Annotated AI Camera",
+            videoPreview: "Video Preview",
+            realtimeDetection: "Realtime Detection",
+            videoEmpty: "Upload a traffic video and start the engine.",
+            fsdMap: "3D FSD Map",
+            engineOfflineShort: "AI engine offline",
+            waitingFsd: "WAITING FOR FSD VISUALIZATION",
+            fsdActive: "FSD VISUALIZATION ACTIVE",
+            violationFeed: "Live Violation Feed",
+            newestFirst: "Newest first",
+            colTime: "TIME",
+            colVehicle: "VEHICLE",
+            colTracker: "TRACKER",
+            colViolation: "VIOLATION",
+            colPlate: "PLATE",
+            colConfidence: "CONFIDENCE",
+            noViolations: "No violations logged yet.",
+            analyticsTitle: "Analytics",
+            operationalSummary: "Operational summary",
+            violationDist: "VIOLATION DISTRIBUTION",
+            vehicleDist: "VEHICLE DISTRIBUTION",
+            hourlyViolations: "HOURLY VIOLATIONS",
+            trafficDensity: "TRAFFIC DENSITY",
+            evidenceVault: "Evidence Vault",
+            items: "items",
+            searchPlaceholder: "Search plate, tracker, violation",
+            allVehicles: "All vehicles",
+            cars: "Cars",
+            motorcycles: "Motorcycles",
+            trucks: "Trucks",
+            allViolations: "All violations",
+            wrongWay: "Wrong way",
+            helmet: "Helmet",
+            seatbelt: "Seatbelt",
+            noEvidence: "No evidence matches the current filters.",
+            systemPrefs: "System Preferences",
+            selectTheme: "SELECT DASHBOARD THEME",
+            selectLanguage: "SELECT LANGUAGE / ಭಾಷೆ ಆಯ್ಕೆ",
+            themeDark: "Default Dark",
+            themeDarkDesc: "Cyberpunk Orange",
+            themeLight: "Light Mode",
+            themeLightDesc: "Clean Slate",
+            themeNeon: "Neon Blue",
+            themeNeonDesc: "Matrix Cyan",
+            themeCrimson: "Crimson Red",
+            themeCrimsonDesc: "Security Warning",
+            systemStatus: "System Status",
+            diagnostics: "Diagnostics",
+            statusEngine: "AI INFERENCE ENGINE",
+            statusDb: "DATABASE CONNECTION",
+            statusUptime: "SYSTEM UPTIME",
+            statusApi: "API SERVER STATUS",
+        },
+        kn: {
+            commandCenter: "ಆಜ್ಞಾ ಕೇಂದ್ರ",
+            navDashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+            navCameras: "ನೇರ ಕ್ಯಾಮೆರಾ",
+            navEvidence: "ಪುರಾವೆ ವಾಲ್ಟ್",
+            navAnalytics: "ವಿಶ್ಲೇಷಣೆ",
+            navSettings: "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+            navStatus: "ಸಿಸ್ಟಮ್ ಸ್ಥಿತಿ",
+            eyebrow: "AI ಸಂಚಾರ ರಕ್ಷಕ",
+            subhead: "ಜಾರಿ, ಪುರಾವೆ ಮತ್ತು ಸಂಚಾರ ಗುಪ್ತಚರಕ್ಕಾಗಿ ನೇರ ಆಜ್ಞಾ ಅವಲೋಕನ.",
+            lightTheme: "ಬೆಳಕಿನ ಥೀಮ್",
+            darkTheme: "ಗಾಢ ಥೀಮ್",
+            liveFeed: "ನೇರ ಫೀಡ್",
+            uploadVideo: "ಸಂಚಾರ ವೀಡಿಯೋ ಅಪ್‌ಲೋಡ್",
+            connectCamera: "ನೇರ ಕ್ಯಾಮೆರಾ ಸಂಪರ್ಕಿಸಿ",
+            uploadLabel: "ಸಂಚಾರ ವೀಡಿಯೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+            uploadHint: "ಅನುಮತಿಸಲಾದ ವಿಧಗಳು: MP4, AVI, MOV, MKV",
+            startEngine: "ಎಂಜಿನ್ ಪ್ರಾರಂಭಿಸಿ",
+            stopEngine: "ಎಂಜಿನ್ ನಿಲ್ಲಿಸಿ",
+            refresh: "ರಿಫ್ರೆಶ್",
+            engineOffline: "AI ಎಂಜಿನ್ ಆಫ್‌ಲೈನ್. ಒಂದು ವೀಡಿಯೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ ಪ್ರಾರಂಭಿಸಿ.",
+            engineOnline: "AI ಎಂಜಿನ್ ಆನ್‌ಲೈನ್",
+            engineProcessing: "ವೀಡಿಯೋ ಸಂಸ್ಕರಿಸಲಾಗುತ್ತಿದೆ…",
+            metricVehicles: "ವಾಹನಗಳು",
+            metricViolations: "ಇಂದಿನ ಉಲ್ಲಂಘನೆಗಳು",
+            metricWrongWay: "ತಪ್ಪು ದಾರಿ",
+            metricHelmet: "ಹೆಲ್ಮೆಟ್",
+            metricSeatbelt: "ಸೀಟ್‌ಬೆಲ್ಟ್",
+            metricParking: "ಪಾರ್ಕಿಂಗ್",
+            metricDensity: "ಸಂಚಾರ ಸಾಂದ್ರತೆ",
+            metricFps: "FPS",
+            annotatedCamera: "ಟಿಪ್ಪಣಿ AI ಕ್ಯಾಮೆರಾ",
+            videoPreview: "ವೀಡಿಯೋ ಪೂರ್ವವೀಕ್ಷಣೆ",
+            realtimeDetection: "ನೈಜ ಸಮಯ ಪತ್ತೆ",
+            videoEmpty: "ಸಂಚಾರ ವೀಡಿಯೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ ಮತ್ತು ಎಂಜಿನ್ ಪ್ರಾರಂಭಿಸಿ.",
+            fsdMap: "3D FSD ನಕ್ಷೆ",
+            engineOfflineShort: "AI ಎಂಜಿನ್ ಆಫ್‌ಲೈನ್",
+            waitingFsd: "FSD ದೃಶ್ಯೀಕರಣಕ್ಕಾಗಿ ಕಾಯುತ್ತಿದೆ",
+            fsdActive: "FSD ದೃಶ್ಯೀಕರಣ ಸಕ್ರಿಯ",
+            violationFeed: "ನೇರ ಉಲ್ಲಂಘನೆ ಫೀಡ್",
+            newestFirst: "ಹೊಸತು ಮೊದಲು",
+            colTime: "ಸಮಯ",
+            colVehicle: "ವಾಹನ",
+            colTracker: "ಟ್ರ್ಯಾಕರ್",
+            colViolation: "ಉಲ್ಲಂಘನೆ",
+            colPlate: "ಪ್ಲೇಟ್",
+            colConfidence: "ವಿಶ್ವಾಸ",
+            noViolations: "ಇನ್ನೂ ಯಾವುದೇ ಉಲ್ಲಂಘನೆ ದಾಖಲಾಗಿಲ್ಲ.",
+            analyticsTitle: "ವಿಶ್ಲೇಷಣೆ",
+            operationalSummary: "ಕಾರ್ಯಾಚರಣೆ ಸಾರಾಂಶ",
+            violationDist: "ಉಲ್ಲಂಘನೆ ವಿತರಣೆ",
+            vehicleDist: "ವಾಹನ ವಿತರಣೆ",
+            hourlyViolations: "ಗಂಟೆಯ ಉಲ್ಲಂಘನೆಗಳು",
+            trafficDensity: "ಸಂಚಾರ ಸಾಂದ್ರತೆ",
+            evidenceVault: "ಪುರಾವೆ ವಾಲ್ಟ್",
+            items: "ವಸ್ತುಗಳು",
+            searchPlaceholder: "ಪ್ಲೇಟ್, ಟ್ರ್ಯಾಕರ್, ಉಲ್ಲಂಘನೆ ಹುಡುಕಿ",
+            allVehicles: "ಎಲ್ಲ ವಾಹನಗಳು",
+            cars: "ಕಾರುಗಳು",
+            motorcycles: "ಮೋಟಾರ್‌ಸೈಕಲ್‌ಗಳು",
+            trucks: "ಟ್ರಕ್‌ಗಳು",
+            allViolations: "ಎಲ್ಲ ಉಲ್ಲಂಘನೆಗಳು",
+            wrongWay: "ತಪ್ಪು ದಾರಿ",
+            helmet: "ಹೆಲ್ಮೆಟ್",
+            seatbelt: "ಸೀಟ್‌ಬೆಲ್ಟ್",
+            noEvidence: "ಪ್ರಸ್ತುತ ಫಿಲ್ಟರ್‌ಗಳಿಗೆ ಯಾವುದೇ ಪುರಾವೆ ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ.",
+            systemPrefs: "ಸಿಸ್ಟಮ್ ಆದ್ಯತೆಗಳು",
+            selectTheme: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಥೀಮ್ ಆಯ್ಕೆ ಮಾಡಿ",
+            selectLanguage: "ಭಾಷೆ ಆಯ್ಕೆ ಮಾಡಿ",
+            themeDark: "ಡೀಫಾಲ್ಟ್ ಡಾರ್ಕ್",
+            themeDarkDesc: "ಸೈಬರ್‌ಪಂಕ್ ಕಿತ್ತಳೆ",
+            themeLight: "ಬೆಳಕಿನ ಮೋಡ್",
+            themeLightDesc: "ಸ್ವಚ್ಛ ಸ್ಲೇಟ್",
+            themeNeon: "ನಿಯಾನ್ ನೀಲಿ",
+            themeNeonDesc: "ಮ್ಯಾಟ್ರಿಕ್ಸ್ ಸಯಾನ್",
+            themeCrimson: "ಕಡ್ಡಿ ಕೆಂಪು",
+            themeCrimsonDesc: "ಭದ್ರತಾ ಎಚ್ಚರಿಕೆ",
+            systemStatus: "ಸಿಸ್ಟಮ್ ಸ್ಥಿತಿ",
+            diagnostics: "ರೋಗನಿರ್ಣಯ",
+            statusEngine: "AI ಅನುಮಾನ ಎಂಜಿನ್",
+            statusDb: "ಡೇಟಾಬೇಸ್ ಸಂಪರ್ಕ",
+            statusUptime: "ಸಿಸ್ಟಮ್ ಅಪ್‌ಟೈಮ್",
+            statusApi: "API ಸರ್ವರ್ ಸ್ಥಿತಿ",
+        }
+    };
+
+    let currentLang = localStorage.getItem('tiq_lang') || 'en';
+
+    function applyLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('tiq_lang', lang);
+        const dict = TRANSLATIONS[lang];
+
+        // Text content from data-i18n
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (dict[key] !== undefined) el.textContent = dict[key];
+        });
+
+        // Placeholder text from data-i18n-placeholder
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (dict[key] !== undefined) el.placeholder = dict[key];
+        });
+
+        // Toggle active class on lang buttons
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.lang === lang);
+        });
+
+        // Update html lang attribute
+        document.documentElement.lang = lang === 'kn' ? 'kn' : 'en';
+    }
+
+    // Wire up language buttons
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', () => applyLanguage(btn.dataset.lang));
+    });
+
+    // Apply saved language on load
+    applyLanguage(currentLang);
+    </script>
 </body>
 </html>
